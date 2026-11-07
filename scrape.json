@@ -1,0 +1,8 @@
+{
+  "family": "nclt",
+  "about": "India company-law tribunal orders and judgements: NCLT (nclt.gov.in) and NCLAT (nclat.nic.in). India-only sites (geo=IN).",
+  "setup": ["pip install -r requirements.txt"],
+  "tasks": {
+    "crawl": ["python", "crawl.py"]
+  }
+}

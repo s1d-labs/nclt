@@ -1,0 +1,40 @@
+name: check
+
+# Verifies this family on every push. Both target sites (nclt.gov.in, nclat.nic.in) answer only from India, so a GitHub runner in
+# the US or EU cannot fetch them. The check therefore serves the saved pages (tests/pages) from localhost and runs scrape-check
+# against that, with SITE pointed at localhost, so the whole hub loop (setup_family, claim, parse, record, upload, complete, rerun)
+# runs with no access to the live sites. Parsing is tested by pytest on the same saved pages. Nothing reaches the real hub.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q -r requirements.txt pytest "scrape-hub-client @ git+https://github.com/s1d-labs/runner@main#subdirectory=sdk"
+      - name: Parsing tests
+        run: python -m pytest tests -q
+      - name: scrape-check (local stand-in hub, saved page over localhost)
+        run: |
+          python -m http.server 8899 --directory tests/pages >/tmp/httpd.log 2>&1 &
+          sleep 1
+          scrape-check --project nclt-offline-check --task crawl \
+            --env KIND=nclat_judgements --env SITE=http://127.0.0.1:8899 \
+            --item '{"key":"page-0","payload":{"url":"http://127.0.0.1:8899/nclat-judgement-data-p0.html","expected":30}}' \
+            --items 1 --pause 3 --timeout 300
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: scrape-check
+          path: .scrape-check/
+          if-no-files-found: ignore
