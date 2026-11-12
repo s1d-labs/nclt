@@ -18,29 +18,13 @@ import sys
 import time
 
 import requests
+from scrape_hub_client import LocalHub
 
 import crawl
 from family import PROJECTS
 
 UA = "s1d-labs scraper (https://github.com/s1d-labs)"
 BY_NAME = {p["name"]: p for p in PROJECTS}
-
-
-class FileHub:
-    """Minimal hub stand-in: counts only, so crawl.fetch works unchanged."""
-    settings = {"threads": 1, "delay_ms": 1000, "paused": False}
-
-    def __init__(self):
-        self.counts = {}
-
-    def metric(self, name, value=1):
-        self.counts[name] = self.counts.get(name, 0) + value
-
-    def error(self, n=1):
-        self.metric("http_error", n)
-
-    def block(self, n=1):
-        self.metric("blocked", n)
 
 
 def get_pdf(hub, session, url, dest, delay):
@@ -77,7 +61,7 @@ def main():
     pdf_dir = os.path.join(a.out, a.project, "pdf")
     done = set(open(done_path).read().split()) if os.path.exists(done_path) else set()
 
-    hub, session = FileHub(), requests.Session()
+    hub, session = LocalHub(delay_ms=1000), requests.Session()   # counters only, so crawl.fetch works unchanged
     session.headers["User-Agent"] = UA
     records = pdfs = 0
     with open(jsonl_path, "a", encoding="utf-8") as jf, open(done_path, "a") as df:

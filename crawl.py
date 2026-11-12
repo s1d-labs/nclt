@@ -26,6 +26,7 @@ import time
 import urllib.parse
 
 import requests
+from scrape_hub_client import HubClient, LocalHub, timed_get
 
 PROJECT = os.environ.get("SCRAPE_POOL_PROJECT", "")
 KIND = os.environ.get("KIND", "")
@@ -237,19 +238,8 @@ def parse(page):
 # ------------------------------------------------------------------ fetching
 
 def fetch(hub, session, url, binary=False):
-    t = time.time()
-    try:
-        r = session.get(url, timeout=60, headers={"User-Agent": UA})
-    except requests.RequestException:
-        hub.metric("http_error")
-        hub.error()
-        return None
-    hub.metric("n_http")
-    hub.metric("t_http_s", time.time() - t)
-    if r.status_code != 200:
-        hub.metric(f"http_{r.status_code}")
-        if r.status_code in (403, 429, 503):
-            hub.block()
+    r = timed_get(hub, session, url, timeout=60, headers={"User-Agent": UA})   # n_http, t_http_s, http_<code>, http_error
+    if r is None or r.status_code != 200:
         return None
     if binary:
         return r.content
@@ -326,7 +316,6 @@ def handle_nclt_orders(hub, session, item):
 
 
 def main():
-    from scrape_hub_client import HubClient      # imported here so --local works without it
     hub = HubClient(PROJECT, job_index=int(os.environ.get("SCRAPE_JOB_INDEX", "0")),
                     total_jobs=int(os.environ.get("SCRAPE_TOTAL_JOBS", "1")))
     session = requests.Session()
@@ -348,23 +337,6 @@ def main():
 
 
 # ------------------------------------------------------------------ offline dry run
-
-class LocalHub:
-    """Stand-in for HubClient so `--local` parses one page without the hub."""
-    settings = {"threads": 1, "delay_ms": 0, "paused": False}
-
-    def __init__(self):
-        self.counts = {}
-
-    def metric(self, name, value=1):
-        self.counts[name] = self.counts.get(name, 0) + value
-
-    def error(self, n=1):
-        self.metric("errors", n)
-
-    def block(self, n=1):
-        self.metric("blocked", n)
-
 
 def local(src):
     """Parse one listing page and print its records. `src` is a URL or a local file path."""

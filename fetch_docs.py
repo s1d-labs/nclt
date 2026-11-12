@@ -14,26 +14,11 @@ import sys
 import time
 
 import requests
+from scrape_hub_client import LocalHub
 
 import crawl
 
 UA = "s1d-labs scraper (https://github.com/s1d-labs)"
-
-
-class FileHub:
-    settings = {"threads": 1, "delay_ms": 1000, "paused": False}
-
-    def __init__(self):
-        self.counts = {}
-
-    def metric(self, name, value=1):
-        self.counts[name] = self.counts.get(name, 0) + value
-
-    def error(self, n=1):
-        self.metric("http_error", n)
-
-    def block(self, n=1):
-        self.metric("blocked", n)
 
 
 def main():
@@ -49,7 +34,7 @@ def main():
     if not os.path.exists(jsonl_path):
         sys.exit(f"no records file: {jsonl_path} (run standalone.py first)")
 
-    hub, session = FileHub(), requests.Session()
+    hub, session = LocalHub(delay_ms=1000), requests.Session()   # counters only, so crawl.fetch works unchanged
     session.headers["User-Agent"] = UA
     ok = miss = skip = 0
     for line in open(jsonl_path, encoding="utf-8"):
