@@ -12,8 +12,7 @@ judgement, downloads the linked PDF, and stores the PDF in the family's bucket a
 (the hub signs every upload; this code never holds a storage key). NCLT orders are a two-step flow: the
 listing links to a detail page (interim-order/<id>) that holds the order PDFs.
 
-Both target sites answer only from India and use valid TLS certificates. The projects run with geo="IN"
-(India pool servers). The code reports the standard counters (n_http, t_http_s, http_error, http_<code>)
+Both target sites use valid TLS certificates and answer GitHub's runners directly; the projects run with no proxy. The code reports the standard counters (n_http, t_http_s, http_error, http_<code>)
 that the hub uses for politeness and tracking.
 """
 import gzip

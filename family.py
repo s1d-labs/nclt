@@ -4,8 +4,8 @@ Family `nclt`: company-law tribunal orders and judgements from:
   - NCLT  (nclt.gov.in)   orders and judgements archive (Drupal views, PDFs inline or on a detail page)
   - NCLAT (nclat.nic.in)  older judgements and daily orders (Drupal views, PDFs inline)
 
-Both sites answer only from India and have valid TLS certificates, so every project runs with geo="IN"
-(India pool servers), threads=1 and delay_ms>=1000 (one request per second per worker).
+Both sites answer GitHub's runners directly (test 2026-11-12) and have valid TLS certificates, so every project runs with
+no proxy, threads=1 and delay_ms>=1000 (one request per second per worker).
 
 The page counts below are the pager "last" values seen on 2026-11-07. Re-check them before you seed the
 full queues: fetch each listing from India and read the last page number in the pager.
@@ -67,9 +67,9 @@ PROJECTS = [
     },
 ]
 
-# health checks: one per host, every minute, through an Indian proxy (both hosts are .gov.in / .nic.in).
+# health checks: one per host, every minute, direct from the hub (in Mumbai).
 # Work on a project holds while its probe fails.
 PROBES = [
-    {"name": f"{FAMILY}:nclt.gov.in", "url": f"{NCLT}/archive/judgement-date-wise", "expect": "Name of Petitioner", "proxy": "IN"},
-    {"name": f"{FAMILY}:nclat.nic.in", "url": f"{NCLAT}/judgement-data", "expect": "Download", "proxy": "IN"},
+    {"name": f"{FAMILY}:nclt.gov.in", "url": f"{NCLT}/archive/judgement-date-wise", "expect": "Name of Petitioner"},
+    {"name": f"{FAMILY}:nclat.nic.in", "url": f"{NCLAT}/judgement-data", "expect": "Download"},
 ]
