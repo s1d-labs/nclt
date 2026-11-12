@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -q -r requirements.txt pytest "scrape-hub-client @ git+https://github.com/s1d-labs/runner@main#subdirectory=sdk"
@@ -32,7 +32,7 @@ jobs:
             --env KIND=nclat_judgements --env SITE=http://127.0.0.1:8899 \
             --item '{"key":"page-0","payload":{"url":"http://127.0.0.1:8899/nclat-judgement-data-p0.html","expected":30}}' \
             --items 1 --pause 3 --timeout 300
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: ${{ always() }}
         with:
           name: scrape-check
